@@ -13,3 +13,4 @@ use Illuminate\Http\Request;
 |
 */
 
+Route::middleware('api')->post('/module_reminder_assigner', 'ApiController@assignModuleReminder');
