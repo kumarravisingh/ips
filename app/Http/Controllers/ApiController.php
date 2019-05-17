@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Contracts\TagContract;
 use App\Http\Helpers\InfusionsoftHelper;
-use App\Repositories\InfusionsoftRepository;
+use App\Infusionsoft\InfusionsoftContact;
+use App\Infusionsoft\InfusionsoftTag;
+use App\Module;
+use App\Repositories\ContactDetailRepository;
 use App\Repositories\TagRepository;
 use App\Tag;
+use App\User;
 use Illuminate\Http\Request;
 use Response;
 
@@ -20,8 +24,14 @@ class ApiController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function assignModuleReminder(Request $request){
+//        $infusionsoftHelper = new InfusionsoftHelper();
+//        return $infusionsoftHelper->getContact('5cdf24c86faeb@test.com');
+        //return $this->exampleCustomer();
+        $this->getTagsForAssignment(new TagRepository());
+         $contact = $this->getContactDetailsFromApi(new ContactDetailRepository(), $request->email);
+         $contact =$contact['Email'];
+         return $contact;
 
-         $this->getTagsForAssignment(new TagRepository());
         return response()->json(['success'=>true]);
     }
 
@@ -59,9 +69,29 @@ class ApiController extends Controller
 
     public function getTagsForAssignment(TagRepository $tagRepository){
 
-        $tags  = $tagRepository->getTags(new InfusionsoftRepository());
+        return $tagRepository->getTags(new InfusionsoftTag());
 
-        return $tags->all();
+        return $this;
     }
 
+    // Todo: Get contact detail from infusinsoft by email
+
+    public function getContactDetailsFromApi(ContactDetailRepository $contactDetailRepository, $email){
+
+        $data = $contactDetailRepository->getContactDetail(new InfusionsoftContact(), $email);
+        return $data;
+        //return $this;
+
+    }
+
+
+    // Todo: Get Product from contact detail
+    // Todo: Convert products to array
+    public function getProductsInArrayFormat($products){
+        return explode(',', $products);
+    }
+    // Todo: Check user watched any module if not assign first one
+    // Todo: Traverse product wise get last watched module of this product
+    // Todo: If all  videos of this product watched move to next product
+    // Todo: Attach tag to last module
 }

@@ -1,6 +1,6 @@
 <?php
 namespace App\Contracts;
 
-interface InfusionsoftContract {
+interface InfusionsoftTagContract {
     function getTagsFromInfusionsoftApi();
 }

@@ -44,7 +44,7 @@ class GetTagsFromDatabaseIfExistTest extends TestCase
         $this->assertEquals(0,$tags->count());
         $tagRepositoryObject = new TagRepository();
 
-        $infusionsoftRepositoryMock = $this->createMock('App\Repositories\InfusionsoftRepository', 'App\Contracts\InfusionsoftContract');
+        $infusionsoftRepositoryMock = $this->createMock('App\Infusionsoft\InfusionsoftTag', 'App\Contracts\InfusionsoftTagContract');
 
         $dummyTagsForMatching = factory(Tag::class, 3)->make();
         $infusionsoftRepositoryMock->method('getTagsFromInfusionsoftApi')
@@ -68,7 +68,7 @@ class GetTagsFromDatabaseIfExistTest extends TestCase
         $this->assertEquals(0,$tags->count());
         $tagRepositoryObject = new TagRepository();
 
-        $infusionsoftRepositoryMock = $this->createMock('App\Repositories\InfusionsoftRepository', 'App\Contracts\InfusionsoftContract');
+        $infusionsoftRepositoryMock = $this->createMock('App\Infusionsoft\InfusionsoftTag', 'App\Contracts\InfusionsoftTagContract');
 
         $infusionsoftRepositoryMock->method('getTagsFromInfusionsoftApi')
             ->willReturn(factory(Tag::class, 3)->make());

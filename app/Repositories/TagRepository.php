@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Contracts\InfusionsoftContract;
+use App\Contracts\InfusionsoftTagContract;
 use App\Tag;
 
 class TagRepository
@@ -11,27 +11,25 @@ class TagRepository
     /**
      * return tags getting it from db or infusionsoft
      *
-     * @param InfusionsoftContract $infusionsoftContract
+     * @param InfusionsoftTagContract $infusionsoftContract
      * @return Tag[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
      */
 
-    public function getTags(InfusionsoftContract $infusionsoftContract){
+    public function getTags(InfusionsoftTagContract $infusionsoftContract){
 
         $tags = Tag::all();
-
-        if($tags->isEmpty()){
+        if($tags->count() < 1){
             $tags = $this->getTagFromInfusionSoft($infusionsoftContract);
             $this->saveTags($tags);
         }
-
         return $tags;
     }
 
     /**
-     * @param InfusionsoftContract $infusionsoftContract
+     * @param InfusionsoftTagContract $infusionsoftContract
      * @return \Illuminate\Support\Collection
      */
-    public function getTagFromInfusionSoft(InfusionsoftContract $infusionsoftContract){
+    public function getTagFromInfusionSoft(InfusionsoftTagContract $infusionsoftContract){
         return $infusionsoftContract->getTagsFromInfusionsoftApi();
     }
 

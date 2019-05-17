@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Infusionsoft;
 
-use App\Contracts\InfusionsoftContract;
+use App\Contracts\InfusionsoftTagContract;
 use App\Http\Helpers\InfusionsoftHelper;
 
-class InfusionsoftRepository implements InfusionsoftContract
+class InfusionsoftTag implements InfusionsoftTagContract
 {
 
     function getTagsFromInfusionsoftApi()
