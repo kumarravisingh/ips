@@ -29,8 +29,8 @@ class ApiController extends Controller
         //return $this->exampleCustomer();
         $this->getTagsForAssignment(new TagRepository());
          $contact = $this->getContactDetailsFromApi(new ContactDetailRepository(), $request->email);
-         $contact =$contact['Email'];
-         return $contact;
+         $products = $this->getProductsInArrayFormat($contact['_Products']);
+         return $this->getModuleForTagAssignment(new ContactDetailRepository(), $request->email);
 
         return response()->json(['success'=>true]);
     }
@@ -90,8 +90,10 @@ class ApiController extends Controller
     public function getProductsInArrayFormat($products){
         return explode(',', $products);
     }
-    // Todo: Check user watched any module if not assign first one
-    // Todo: Traverse product wise get last watched module of this product
-    // Todo: If all  videos of this product watched move to next product
-    // Todo: Attach tag to last module
+
+    public function getModuleForTagAssignment(ContactDetailRepository $contactDetailRepository, $email){
+        return $contactDetailRepository->getLastModule($email);
+    }
+
+
 }
