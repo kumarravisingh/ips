@@ -48,16 +48,26 @@ class ContactDetailRepository{
 
             $allIdOfModuleWithThisProduct = Module::where('course_key', $product)->get();
 
-            $completedModuleOfThisProduct = User::whereEmail($email)->first()
-               ->completed_modules(function ($query) use($allIdOfModuleWithThisProduct){
-                return $query->whereIn('module_id', $allIdOfModuleWithThisProduct->pluck('id'))->get();
-            })->get();
+            $completedModuleOfThisProduct = $this->getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct);
 
            if(! $this->moveToNextProduct($allIdOfModuleWithThisProduct, $completedModuleOfThisProduct)){
                return $this->getNextModule($allIdOfModuleWithThisProduct, $completedModuleOfThisProduct);
            }
         }
         return false;
+    }
+
+    /**
+     * get all completed modules of given product
+     * @param $email
+     * @param $allIdOfModuleWithThisProduct
+     * @return mixed
+     */
+    public function getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct){
+       return User::whereEmail($email)->first()
+            ->completed_modules(function ($query) use($allIdOfModuleWithThisProduct){
+                return $query->whereIn('module_id', $allIdOfModuleWithThisProduct->pluck('id'))->get();
+            })->get();
     }
 
     /**
