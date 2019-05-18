@@ -25,17 +25,17 @@ class ApiController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function assignModuleReminder(Request $request){
-//        $infusionsoftHelper = new InfusionsoftHelper();
-//        return $infusionsoftHelper->getContact('5cdf24c86faeb@test.com');
-        //return $this->exampleCustomer();
-        $this->getTagsForAssignment(new TagRepository());
-         $contact = $this->getContactDetailsFromApi(new ContactDetailRepository(), $request->email);
+         $this->getTagsForAssignment(new TagRepository());
+         $contact = $this->getContactDetailsFromApi(new ContactDetailRepository(), $request->contact_email);
          $products = $this->getProductsInArrayFormat($contact['_Products']);
-         $module = $this->getModuleForTagAssignment(new ContactDetailRepository(), $request->email, $products);
+         $module = $this->getModuleForTagAssignment(new ContactDetailRepository(), $request->contact_email, $products);
          $response =  $this->assignModuleUsingInfusionsoft(new ContactDetailRepository(),$module, $contact);
-         return collect($response);
+         if($response == true){
+             return response()->json(['success'=>true]);
+         }else{
+             return response()->json(['success'=>false]);
+         }
 
-        return response()->json(['success'=>true]);
     }
 
     private function exampleCustomer(){
@@ -77,8 +77,12 @@ class ApiController extends Controller
         return $this;
     }
 
-    // Todo: Get contact detail from infusinsoft by email
-
+    /**
+     * get contact detail
+     * @param ContactDetailRepository $contactDetailRepository
+     * @param $email
+     * @return mixed
+     */
     public function getContactDetailsFromApi(ContactDetailRepository $contactDetailRepository, $email){
 
         $data = $contactDetailRepository->getContactDetail(new InfusionsoftContact(), $email);
@@ -88,16 +92,33 @@ class ApiController extends Controller
     }
 
 
-    // Todo: Get Product from contact detail
-    // Todo: Convert products to array
+    /**
+     * convert product string separated by comma for easy traversing
+     * @param $products
+     * @return array
+     */
     public function getProductsInArrayFormat($products){
         return explode(',', $products);
     }
 
+    /**
+     *
+     * @param ContactDetailRepository $contactDetailRepository
+     * @param $email
+     * @param $products
+     * @return bool|mixed
+     */
     public function getModuleForTagAssignment(ContactDetailRepository $contactDetailRepository, $email, $products){
         return $contactDetailRepository->getLastModule($email, $products);
     }
 
+    /**
+     * assign module tag to product
+     * @param ContactDetailRepository $contactDetailRepository
+     * @param $module
+     * @param $contact
+     * @return mixed
+     */
     public function assignModuleUsingInfusionsoft(ContactDetailRepository $contactDetailRepository, $module, $contact){
         return $contactDetailRepository->attachModule(new InfusionsoftAddTag() ,$module, $contact);
     }

@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Module;
 use App\Repositories\ContactDetailRepository;
+use App\Tag;
 use App\User;
 use Artisan;
 use Tests\TestCase;
@@ -13,12 +14,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 class ContactDetailTest extends TestCase
 {
     use RefreshDatabase;
+
+
     public function setUp()
     {
         parent::setUp();
         Artisan::call('migrate');
         Artisan::call('db:seed');
     }
+
+
     /**
      * A basic test example.
      *
@@ -43,6 +48,8 @@ class ContactDetailTest extends TestCase
 
     }
 
+
+
     public function testUserHaveNotWatchedAnyModule(){
         $uniqid = uniqid();
         $user = User::create([
@@ -55,6 +62,8 @@ class ContactDetailTest extends TestCase
         $watchedModuleStatus = $contactRepositoryObject->userHasWatcheedAnyModule($user->email);
         $this->assertEquals(false, $watchedModuleStatus);
     }
+
+
 
     public function testUserHasWatchedModule(){
         $uniqid = uniqid();
@@ -72,4 +81,35 @@ class ContactDetailTest extends TestCase
         $watchedModuleStatus = $contactRepositoryObject->userHasWatcheedAnyModule($user->email);
         $this->assertEquals(true, $watchedModuleStatus);
     }
+
+
+
+    public function testAttachingTagsToInfusionsoft(){
+        $this->withExceptionHandling();
+        $tag = new Tag();
+        $tag->name = 'Start IPA Module 1 Reminders';
+        $tag->save();
+        $contactRepositoryObject = new ContactDetailRepository();
+        $contactRepositoryMock = $this->createMock('App\Infusionsoft\InfusionsoftAddTag', 'App\Contracts\InfusionsoftAddTagContract');
+
+        // sample data to mock the infusionsoft api response data
+        $mockContactData = collect(json_decode('{"Email":"5cdf24c86faeb@test.com","_Products":"ipa,iea","Id":8947}'));
+        $mockModuleData = Module::first();
+
+        $contactRepositoryMock->method('addTagsUsingInfusionsoftApi')
+            ->willReturn(true);
+
+        $resultData = $contactRepositoryObject->attachModule($contactRepositoryMock, $mockModuleData, $mockContactData);
+
+        $this->assertEquals(true, $resultData);
+    }
+
+    public function testGettingFirstModuleOfFirstProductFromAnArrayOfProducts(){
+        $contactRepositoryObject = new ContactDetailRepository();
+        $products = ['ipa','iea'];
+        $module = $contactRepositoryObject->getFirstModule($products);
+        $this->assertEquals('IPA Module 1', $module->name);
+
+    }
+
 }

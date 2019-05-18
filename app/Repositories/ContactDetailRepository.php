@@ -10,22 +10,39 @@ use App\User;
 
 class ContactDetailRepository{
 
+    /**
+     * get contact details
+     * @param InfusionSoftContactDetailContract $infusionSoftContactDetailContract
+     * @param $email
+     * @return mixed
+     */
     public function getContactDetail(InfusionSoftContactDetailContract $infusionSoftContactDetailContract, $email){
         return $infusionSoftContactDetailContract->getContactsFromInfusionsoftApi($email);
     }
 
+    /**
+     * get last module for tag assignment
+     * @param $email
+     * @param $products
+     * @return bool|mixed
+     */
     public function getLastModule($email, $products){
-        // Todo: Check user watched any module if not assign first one
          if($this->userHasWatcheedAnyModule($email)){
 
-            $module = $this->getModuleToAttach($email, $products);
+            $module = $this->calculateModuleToAttach($email, $products);
          }else{
              $module = $this->getFirstModule($products);
          }
          return $module;
     }
 
-    public function getModuleToAttach($email, $products){
+    /**
+     * iterate over products and their modules to find next module to attach
+     * @param $email
+     * @param $products
+     * @return bool|mixed
+     */
+    public function calculateModuleToAttach($email, $products){
 
         foreach ($products as $product){
 
@@ -43,6 +60,12 @@ class ContactDetailRepository{
         return false;
     }
 
+    /**
+     * Find out moving to next module or assigning tag to module of this product
+     * @param $allModulesOfProduct
+     * @param $completedModulesOfProduct
+     * @return bool
+     */
     public function moveToNextProduct($allModulesOfProduct, $completedModulesOfProduct){
         if($allModulesOfProduct->max('id') == $completedModulesOfProduct->max('id')){
             return true;
@@ -51,11 +74,23 @@ class ContactDetailRepository{
         }
     }
 
+    /**
+     * Get next module from the list of all module collection of current product for tag assignment
+     * @param $allModulesOfProduct
+     * @param $completedModulesOfProduct
+     * @return mixed
+     */
     public function getNextModule($allModulesOfProduct, $completedModulesOfProduct){
         $maxIdOfCompletedModule = $completedModulesOfProduct->max('id');
         return $allModulesOfProduct->where('id','>',$maxIdOfCompletedModule)->first();
     }
 
+
+    /**
+     * Check if user has watched any module
+     * @param $userEmail
+     * @return bool
+     */
     public function userHasWatcheedAnyModule($userEmail){
         $watchedModule = User::whereEmail($userEmail)->first()->completed_modules;
         if($watchedModule->count() > 0){
@@ -66,12 +101,24 @@ class ContactDetailRepository{
 
     }
 
+    /**
+     * get first module of the given product
+     * @param $products
+     * @return mixed
+     */
     public function getFirstModule($products){
         foreach ($products as $product){
             return Module::where('course_key', $product)->first();
         }
     }
 
+    /**
+     * attach module tag to infusionsoft
+     * @param InfusionsoftAddTagContract $infusionsoftAddTagContract
+     * @param $module
+     * @param $contact
+     * @return mixed
+     */
     public function attachModule(InfusionsoftAddTagContract $infusionsoftAddTagContract, $module, $contact){
         if($module == false){
             $tag = Tag::where('name','like', '%'.'Module reminders completed'.'%')->first();
@@ -79,7 +126,6 @@ class ContactDetailRepository{
             $tag = Tag::where('name','like', '%'.$module->name.'%')->first();
         }
         return $infusionsoftAddTagContract->addTagsUsingInfusionsoftApi($contact['Id'], $tag->id);
-
 
     }
 }
