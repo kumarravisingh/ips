@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contracts\TagContract;
 use App\Http\Helpers\InfusionsoftHelper;
+use App\Infusionsoft\InfusionsoftAddTag;
 use App\Infusionsoft\InfusionsoftContact;
 use App\Infusionsoft\InfusionsoftTag;
 use App\Module;
@@ -30,7 +31,9 @@ class ApiController extends Controller
         $this->getTagsForAssignment(new TagRepository());
          $contact = $this->getContactDetailsFromApi(new ContactDetailRepository(), $request->email);
          $products = $this->getProductsInArrayFormat($contact['_Products']);
-         return $this->getModuleForTagAssignment(new ContactDetailRepository(), $request->email);
+         $module = $this->getModuleForTagAssignment(new ContactDetailRepository(), $request->email, $products);
+         $response =  $this->assignModuleUsingInfusionsoft(new ContactDetailRepository(),$module, $contact);
+         return collect($response);
 
         return response()->json(['success'=>true]);
     }
@@ -91,8 +94,12 @@ class ApiController extends Controller
         return explode(',', $products);
     }
 
-    public function getModuleForTagAssignment(ContactDetailRepository $contactDetailRepository, $email){
-        return $contactDetailRepository->getLastModule($email);
+    public function getModuleForTagAssignment(ContactDetailRepository $contactDetailRepository, $email, $products){
+        return $contactDetailRepository->getLastModule($email, $products);
+    }
+
+    public function assignModuleUsingInfusionsoft(ContactDetailRepository $contactDetailRepository, $module, $contact){
+        return $contactDetailRepository->attachModule(new InfusionsoftAddTag() ,$module, $contact);
     }
 
 
