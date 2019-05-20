@@ -110,7 +110,7 @@ class ContactDetailTest extends TestCase
 
     public function testGettingFirstModuleOfFirstProductFromAnArrayOfProducts(){
         $contactRepositoryObject = new ContactDetailRepository();
-        $products = ['ipa','iea'];
+        $products = 'ipa';
         $module = $contactRepositoryObject->getFirstModule($products);
         $this->assertEquals('IPA Module 1', $module->name);
 
@@ -159,6 +159,57 @@ class ContactDetailTest extends TestCase
         $completedModule = $contactRepositoryObject->getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct);
         $this->assertEquals($attachedModule, $completedModule->pluck('id'));
 
+    }
+
+    public function testGettingNextModuleIfThereIsUnWatchedModuleInProduct(){
+        $contactRepositoryObject = new ContactDetailRepository();
+        $uniqid = uniqid();
+        $user = User::create([
+            'name' => 'Test ' . $uniqid,
+            'email' => $uniqid.'@test.com',
+            'password' => bcrypt($uniqid)
+        ]);
+        $randomModuleKey = rand(1,6);
+        $user->completed_modules()->attach(Module::where('course_key', 'ipa')->limit($randomModuleKey)->get());
+        $comletedModules = User::find($user->id)->completed_modules;
+        $product = ['ipa'];
+        $email = User::first()->email;
+        $lastModule= $contactRepositoryObject->getLastModule($email, $product);
+        $this->assertEquals($comletedModules->max('id') + 3, $lastModule->id);
+    }
+
+    public function testMovingToNextProductIfAllModulesOfThisProductWatched(){
+        $contactRepositoryObject = new ContactDetailRepository();
+        $uniqid = uniqid();
+        $user = User::create([
+            'name' => 'Test ' . $uniqid,
+            'email' => $uniqid.'@test.com',
+            'password' => bcrypt($uniqid)
+        ]);
+        $randomModuleKey = 6;
+        $user->completed_modules()->attach(Module::where('course_key', 'ipa')->limit($randomModuleKey)->get());
+        $comletedModules = User::find($user->id)->completed_modules;
+        $products = ['ipa','iea'];
+        $email = User::first()->email;
+        $lastModule= $contactRepositoryObject->getLastModule($email, $products);
+        $this->assertEquals($comletedModules->max('id') + 3, $lastModule->id);
+    }
+
+    public function testGettingFalseIfAllModulesOfAllProductsWatched(){
+        $contactRepositoryObject = new ContactDetailRepository();
+        $uniqid = uniqid();
+        $user = User::create([
+            'name' => 'Test ' . $uniqid,
+            'email' => $uniqid.'@test.com',
+            'password' => bcrypt($uniqid)
+        ]);
+        $randomModuleKey = 7;
+        $user->completed_modules()->attach(Module::where('course_key', 'ipa')->limit($randomModuleKey)->get());
+        $comletedModules = User::find($user->id)->completed_modules;
+        $products = ['ipa'];
+        $email = User::first()->email;
+        $lastModule= $contactRepositoryObject->getLastModule($email, $products);
+        $this->assertEquals(false, $lastModule);
     }
 
 

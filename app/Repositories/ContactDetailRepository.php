@@ -44,11 +44,15 @@ class ContactDetailRepository{
      */
     public function calculateModuleToAttach($email, $products){
 
-        foreach ($products as $product){
+        foreach($products as $product){
 
             $allIdOfModuleWithThisProduct = Module::where('course_key', $product)->get();
 
             $completedModuleOfThisProduct = $this->getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct);
+
+            if($completedModuleOfThisProduct->count() == 0 ){
+                return  $this->getFirstModule($product);
+            }
 
            if(! $this->moveToNextProduct($allIdOfModuleWithThisProduct, $completedModuleOfThisProduct)){
                return $this->getNextModule($allIdOfModuleWithThisProduct, $completedModuleOfThisProduct);
@@ -65,9 +69,7 @@ class ContactDetailRepository{
      */
     public function getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct){
        return User::whereEmail($email)->first()
-            ->completed_modules(function ($query) use($allIdOfModuleWithThisProduct){
-                return $query->whereIn('module_id', $allIdOfModuleWithThisProduct->pluck('id'))->get();
-            })->get();
+           ->completed_modules()->whereIn('module_id',$allIdOfModuleWithThisProduct->pluck('id'))->get();
     }
 
     /**
@@ -77,7 +79,7 @@ class ContactDetailRepository{
      * @return bool
      */
     public function moveToNextProduct($allModulesOfProduct, $completedModulesOfProduct){
-        if($allModulesOfProduct->max('id') == $completedModulesOfProduct->max('id')){
+        if($allModulesOfProduct->count() == $completedModulesOfProduct->count()){
             return true;
         }else{
             return false;
@@ -92,7 +94,8 @@ class ContactDetailRepository{
      */
     public function getNextModule($allModulesOfProduct, $completedModulesOfProduct){
         $maxIdOfCompletedModule = $completedModulesOfProduct->max('id');
-        return $allModulesOfProduct->where('id','>',$maxIdOfCompletedModule)->first();
+       $nextModuleId = $allModulesOfProduct->where('id','>',$maxIdOfCompletedModule)->first();
+       return $nextModuleId;
     }
 
 
@@ -116,10 +119,8 @@ class ContactDetailRepository{
      * @param $products
      * @return mixed
      */
-    public function getFirstModule($products){
-        foreach ($products as $product){
+    public function getFirstModule($product){
             return Module::where('course_key', $product)->first();
-        }
     }
 
     /**
