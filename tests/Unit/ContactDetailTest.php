@@ -141,4 +141,25 @@ class ContactDetailTest extends TestCase
     }
 
 
+    public function testGettingCompletedModuleOfProductByMatchingItWithRandomlyAttachedCompletedModule(){
+        $contactRepositoryObject = new ContactDetailRepository();
+        $uniqid = uniqid();
+        $user = User::create([
+            'name' => 'Test ' . $uniqid,
+            'email' => $uniqid.'@test.com',
+            'password' => bcrypt($uniqid)
+        ]);
+        $randomModuleKey = rand(1,3);
+        $user->completed_modules()->attach(Module::where('course_key', 'ipa')->limit($randomModuleKey)->get());
+        $attachedModule = Module::where('course_key', 'ipa')->limit($randomModuleKey)->pluck('id');
+
+        $product = ['ipa'];
+        $email = User::first()->email;
+        $allIdOfModuleWithThisProduct = Module::where('course_key', $product)->get();
+        $completedModule = $contactRepositoryObject->getCompletedModuleOfProduct($email, $allIdOfModuleWithThisProduct);
+        $this->assertEquals($attachedModule, $completedModule->pluck('id'));
+
+    }
+
+
 }
