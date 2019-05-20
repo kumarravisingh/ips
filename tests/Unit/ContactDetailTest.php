@@ -186,13 +186,13 @@ class ContactDetailTest extends TestCase
             'email' => $uniqid.'@test.com',
             'password' => bcrypt($uniqid)
         ]);
-        $randomModuleKey = 6;
+        $randomModuleKey = 7;
         $user->completed_modules()->attach(Module::where('course_key', 'ipa')->limit($randomModuleKey)->get());
         $comletedModules = User::find($user->id)->completed_modules;
         $products = ['ipa','iea'];
         $email = User::first()->email;
         $lastModule= $contactRepositoryObject->getLastModule($email, $products);
-        $this->assertEquals($comletedModules->max('id') + 3, $lastModule->id);
+        $this->assertEquals('iea', $lastModule->course_key);
     }
 
     public function testGettingFalseIfAllModulesOfAllProductsWatched(){
